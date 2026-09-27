@@ -1,6 +1,6 @@
 ![Contrastive Passive EQ](docs/logo_wordmark.png)
 
-Contrastive Passive EQ is a passive, four-band, stereo mastering equaliser for Linux, built as a VST3 plugin with no GUI and meant to be driven from code (for example from Spotify's Pedalboard in Python).
+Contrastive Passive EQ is a passive, four-band, stereo mastering equaliser, built as a VST3 plugin with no GUI of its own (hosts show their generic controls) and meant to be driven from code (for example from Spotify's Pedalboard in Python). Prebuilt downloads are for Linux; it builds from the same source on macOS and Windows (see Build).
 It is modelled on the published curves of the Manley Massive Passive (Mastering version).
 It is a behavioural model of the passive network, fitted to the response curves printed in that unit's owner's manual, and not a circuit clone.
 Contrastive Passive EQ is not affiliated with or endorsed by Manley Laboratories.
@@ -52,6 +52,40 @@ python3 scripts/package.py                # dist/ContrastivePassive-1.0.0-linux-
 
 A clean build this way reproduces the release binaries bit for bit on both architectures (checked with `debian:12` and `debian:12-slim`, DPF freshly cloned). The release zips were packaged with `SOURCE_DATE_EPOCH=1790477659`; set it to reproduce the zips byte for byte. Keep the `-fno-fast-math` in `src/Makefile`: the eigenvalue iteration relies on IEEE arithmetic.
 
+### macOS (build from source)
+
+Tested on macOS 27 with Xcode's command line tools; this builds one bundle for Apple Silicon and Intel:
+
+```bash
+xcode-select --install                    # Apple's command line tools, if not installed
+git clone https://github.com/brookcs3/contrastive-passive-eq.git
+cd contrastive-passive-eq
+git clone https://github.com/DISTRHO/DPF.git third_party/DPF
+git -C third_party/DPF checkout 4238e1c7f0351bbe488d79f0899c540543ac7583
+CFLAGS="-arch arm64 -arch x86_64" CXXFLAGS="-arch arm64 -arch x86_64" LDFLAGS="-arch arm64 -arch x86_64" make -C src
+codesign --force --deep --sign - build/bin/ContrastivePassive.vst3   # ad-hoc signature, needed on Apple Silicon
+mkdir -p ~/Library/Audio/Plug-Ins/VST3
+cp -R build/bin/ContrastivePassive.vst3 ~/Library/Audio/Plug-Ins/VST3/
+```
+
+Leave out the three `-arch` variables for a build for this Mac's own architecture only. This gives a VST3, which hosts such as Reaper, Ableton Live, Bitwig and Pedalboard load; Logic Pro loads Audio Units only, so it will not see the VST3.
+
+### Windows (build from source)
+
+Not yet tested on Windows. The same source builds with MinGW-w64 through DPF. In an MSYS2 "MINGW64" shell ([msys2.org](https://www.msys2.org)):
+
+```bash
+pacman -S --needed git make mingw-w64-x86_64-gcc mingw-w64-x86_64-pkgconf
+git clone https://github.com/brookcs3/contrastive-passive-eq.git
+cd contrastive-passive-eq
+git clone https://github.com/DISTRHO/DPF.git third_party/DPF
+git -C third_party/DPF checkout 4238e1c7f0351bbe488d79f0899c540543ac7583
+make -C src
+cp -r build/bin/ContrastivePassive.vst3 "/c/Program Files/Common Files/VST3/"
+```
+
+Copying into `Program Files` needs an administrator shell.
+
 ## Use it from Python with Pedalboard
 
 ```bash
@@ -60,7 +94,7 @@ python3 -m venv .venv && . .venv/bin/activate
 pip install pedalboard==0.9.23
 ```
 
-Pass the outer `.vst3` folder, not the `.so`. Pedalboard lowercases the parameter names (the plugin declares `L_band3_mode`; Python sees `l_band3_mode`). Every value must be one of the parameter's positions: `eq.parameters["l_band3_freq_hz"].valid_values` lists them.
+Pass the outer `.vst3` folder, not the binary inside it. The examples use the Linux install path; on macOS use `~/Library/Audio/Plug-Ins/VST3/ContrastivePassive.vst3` (Pedalboard runs on macOS too), on Windows `C:\Program Files\Common Files\VST3\ContrastivePassive.vst3`. Pedalboard lowercases the parameter names (the plugin declares `L_band3_mode`; Python sees `l_band3_mode`). Every value must be one of the parameter's positions: `eq.parameters["l_band3_freq_hz"].valid_values` lists them.
 
 ```python
 import os
