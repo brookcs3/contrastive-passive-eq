@@ -8,7 +8,7 @@ import sys, time, numpy as np, pedalboard
 P = pedalboard.load_plugin(sys.argv[1]); fs = 48000.0
 rng = np.random.default_rng(1); x = (0.1 * rng.standard_normal((2, int(60 * fs)))).astype(np.float32)
 for ch in ("l", "r"):
-    for b, (typ, fq) in enumerate((("SHELF", 100.0), ("BELL", 390.0), ("BELL", 3300.0), ("SHELF", 16000.0)), start=1):
+    for b, (typ, fq) in enumerate((("SHELF", 100.0), ("BELL", 390.0), ("BELL", 2200.0), ("SHELF", 12000.0)), start=1):
         setattr(P, f"{ch}_band{b}_mode", "BOOST" if b != 2 else "CUT"); setattr(P, f"{ch}_band{b}_type", typ)
         setattr(P, f"{ch}_band{b}_gain_step", 6.0); setattr(P, f"{ch}_band{b}_bandwidth", 7.0); setattr(P, f"{ch}_band{b}_freq_hz", fq)
     setattr(P, f"{ch}_highpass", "16"); setattr(P, f"{ch}_lowpass", "27K")
