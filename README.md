@@ -106,11 +106,11 @@ eq = load_plugin(os.path.expanduser("~/.vst3/ContrastivePassive.vst3"))   # the 
 print(eq.name, len(eq.parameters))       # Contrastive Passive EQ 50
 
 eq.link = True                           # the right channel follows every l_ control
-eq.l_band3_mode = "BOOST"                # "BOOST", "OUT" or "CUT"
-eq.l_band3_type = "BELL"                 # "SHELF" or "BELL"
-eq.l_band3_freq_hz = 3300                # one of the band's eleven switch frequencies
-eq.l_band3_bandwidth = 7                 # 0 (widest) .. 15 (narrowest)
-eq.l_band3_gain_step = 4                 # 0 (flat) .. 15 (top detent)
+eq.l_band2_mode = "CUT"                  # "BOOST", "OUT" or "CUT"
+eq.l_band2_type = "BELL"                 # "SHELF" or "BELL"
+eq.l_band2_freq_hz = 390                 # one of the band's eleven switch frequencies
+eq.l_band2_bandwidth = 10                # 0 (widest) .. 15 (narrowest)
+eq.l_band2_gain_step = 4                 # 0 (flat) .. 15 (top detent)
 eq.l_highpass = "30"                     # "OFF" "12" "16" "23" "30" "39"
 eq.l_gain_db = -0.5                      # output trim, -2.5 .. +2.5 in 0.5 dB steps
 
@@ -121,17 +121,17 @@ with AudioFile("mix_eq.wav", "w", sr, out.shape[0], bit_depth=24) as f:
     f.write(out)
 ```
 
-That setting peaks at 3.3 kHz, +3.6 dB before the -0.5 dB trim, with the 30 Hz high pass 3 dB down at 30 Hz.
+That setting dips 3.6 dB at 390 Hz before the -0.5 dB trim, and 30 Hz sits 3.2 dB down (the high pass plus the bell's lower skirt).
 
 To EQ the mid only, encode to mid/side and run the mid through the left channel. A fresh instance leaves the right channel flat (every band OUT, LINK off), so the side comes back bit for bit:
 
 ```python
 ms = load_plugin(os.path.expanduser("~/.vst3/ContrastivePassive.vst3"))
-ms.l_band4_mode = "BOOST"                # a touch of 16K air on the mid
-ms.l_band4_type = "SHELF"
-ms.l_band4_freq_hz = 16000
-ms.l_band4_bandwidth = 0
-ms.l_band4_gain_step = 3
+ms.l_band2_mode = "CUT"                  # ease a little boxiness out of the mid
+ms.l_band2_type = "BELL"
+ms.l_band2_freq_hz = 820
+ms.l_band2_bandwidth = 3
+ms.l_band2_gain_step = 3
 
 mid, side = (audio[0] + audio[1]) / 2, (audio[0] - audio[1]) / 2
 mid_eq, side_out = ms(np.stack([mid, side]), sr)

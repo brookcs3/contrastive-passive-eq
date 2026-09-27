@@ -44,25 +44,25 @@ audio, sr, out = ns["audio"], ns["sr"], ns["out"]
 check("example 1 reads mix.wav unchanged", sr == fs and np.array_equal(audio, x), f"sr {sr}")
 check("example 1 keeps the length (zero latency)", out.shape == audio.shape, str(out.shape))
 check("example 1 writes mix_eq.wav", os.path.getsize(os.path.join(work, "mix_eq.wav")) > 0)
-s1 = flat(); s1["bands"][2] = {"mode": 0, "type": 1, "gain_step": 4, "bw_step": 7, "freq_idx": 7}; s1["trim_idx"] = 4; s1["hp_idx"] = 4
-F = np.array([30.0, 100.0, 1000.0, 3300.0, 10000.0])
+s1 = flat(); s1["bands"][1] = {"mode": 2, "type": 1, "gain_step": 4, "bw_step": 10, "freq_idx": 4}; s1["trim_idx"] = 4; s1["hp_idx"] = 4
+F = np.array([30.0, 100.0, 390.0, 1000.0, 3000.0])
 got = resp_db(out[0], 0.5, F, sr); want = 20 * np.log10(np.abs(M.analog_H(s1, F)))
 check("example 1 response equals the analog network (within 0.01 dB)", bool(np.all(np.abs(got - want) < 0.01)),
       " ".join(f"{f:.0f} Hz {g:+.3f} (network {w:+.3f})" for f, g, w in zip(F, got, want)))
-fg = np.geomspace(1000, 10000, 400); peak = fg[np.argmax(resp_db(out[0], 0.5, fg, sr))]
-check("example 1 peaks at 3.3 kHz, +3.6 dB before the trim", abs(peak / 3300 - 1) < 0.02 and abs(got[3] + 0.5 - 3.6) < 0.05,
-      f"peak at {peak:.0f} Hz, {got[3] + 0.5:+.2f} dB before the trim")
-check("example 1: the 30 Hz high pass is 3 dB down at 30 Hz", abs((got[0] + 0.5) + 3.0) < 0.1, f"{got[0] + 0.5:+.2f} dB before the trim")
+fg = np.geomspace(150, 1200, 400); dip = fg[np.argmin(resp_db(out[0], 0.5, fg, sr))]
+check("example 1 dips 3.6 dB at 390 Hz before the trim", abs(dip / 390 - 1) < 0.02 and abs(got[2] + 0.5 + 3.6) < 0.05,
+      f"dip at {dip:.0f} Hz, {got[2] + 0.5:+.2f} dB before the trim")
+check("example 1: 30 Hz sits 3.2 dB down", abs((got[0] + 0.5) + 3.2) < 0.1, f"{got[0] + 0.5:+.2f} dB before the trim")
 check("example 1: LINK on, the right channel is the left channel's filter", float(np.max(np.abs(out[1] * 2 - out[0]))) < 1e-7)
 
 # example 2, as written, continuing from example 1's variables
 ns2 = runpy.run_path(os.path.join(work, "readme_example_2.py"), init_globals=ns)
 mid, side, mid_eq, side_out, out_ms = ns2["mid"], ns2["side"], ns2["mid_eq"], ns2["side_out"], ns2["out_ms"]
 check("example 2: the side comes back bit for bit", np.array_equal(side_out, side))
-s2 = flat(); s2["bands"][3] = {"mode": 0, "type": 0, "gain_step": 3, "bw_step": 0, "freq_idx": 9}
-F2 = np.array([1000.0, 5000.0, 8000.0, 12000.0, 16000.0, 20000.0])
+s2 = flat(); s2["bands"][1] = {"mode": 2, "type": 1, "gain_step": 3, "bw_step": 3, "freq_idx": 6}
+F2 = np.array([200.0, 500.0, 820.0, 1500.0, 5000.0])
 g2 = resp_db(mid_eq, 0.375, F2, sr); w2 = 20 * np.log10(np.abs(M.analog_H(s2, F2)))
-check("example 2: the mid gets the 16K shelf of the analog network (within 0.01 dB)", bool(np.all(np.abs(g2 - w2) < 0.01)),
+check("example 2: the mid gets the 820 Hz cut of the analog network (within 0.01 dB)", bool(np.all(np.abs(g2 - w2) < 0.01)),
       " ".join(f"{f:.0f} Hz {g:+.3f} (network {w:+.3f})" for f, g, w in zip(F2, g2, w2)))
 check("example 2: back to left/right", out_ms.shape == audio.shape and np.array_equal(out_ms[0], mid_eq + side_out))
 
