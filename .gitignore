@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Cameron Brooks
+# SPDX-License-Identifier: GPL-3.0-only
+# build outputs and test results (scripts/build.sh, scripts/test.sh)
+/build/
+# DPF is fetched at the pinned commit by scripts/build.sh
+/third_party/
+# release zips and SHA256SUMS go to a GitHub release, not into the repository (scripts/package.py)
+/dist/
+# Python
+__pycache__/
+*.pyc
+/.venv/
+.DS_Store

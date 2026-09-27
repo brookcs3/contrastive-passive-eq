@@ -1,0 +1,38 @@
+--- a/pocketfft_hdronly.h
++++ b/pocketfft_hdronly.h
+@@ -1603,12 +1603,12 @@
+     }
+   }
+ 
+-template<bool fwd, typename T> void pass_all(T c[], T0 fct) const
++template<bool fwd, typename T> void pass_all(T c[], T0 fct, T *buf=nullptr) const
+   {
+   if (length==1) { c[0]*=fct; return; }
+   size_t l1=1;
+-  arr<T> ch(length);
+-  T *p1=c, *p2=ch.data();
++  arr<T> ch(buf ? 0 : length);
++  T *p1=c, *p2=buf ? buf : ch.data();
+ 
+   for(size_t k1=0; k1<fact.size(); k1++)
+     {
+@@ -1641,7 +1641,7 @@
+     {
+     if (fct!=1.)
+       for (size_t i=0; i<length; ++i)
+-        c[i] = ch[i]*fct;
++        c[i] = p1[i]*fct;
+     else
+       std::copy_n (p1, length, c);
+     }
+@@ -1654,6 +1654,10 @@
+   public:
+     template<typename T> void exec(T c[], T0 fct, bool fwd) const
+       { fwd ? pass_all<true>(c, fct) : pass_all<false>(c, fct); }
++    // Local addition (not upstream): the same transform, using the caller's work array buf (length() elements) instead of a
++    // temporary one, so the call does not allocate for lengths whose factors are all in {2, 3, 4, 5, 7, 8, 11}.
++    template<typename T> void exec(T c[], T0 fct, bool fwd, T *buf) const
++      { fwd ? pass_all<true>(c, fct, buf) : pass_all<false>(c, fct, buf); }
+ 
+   private:
+     POCKETFFT_NOINLINE void factorize()

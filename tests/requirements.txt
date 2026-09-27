@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Cameron Brooks
+# SPDX-License-Identifier: GPL-3.0-only
+# Python packages for the Pedalboard tests (tests/*.py). Pinned to the versions the release was verified with.
+pedalboard==0.9.23
+numpy==2.2.6
+scipy==1.15.3

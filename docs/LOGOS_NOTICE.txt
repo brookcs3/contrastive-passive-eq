@@ -1,0 +1,2 @@
+The logo images in this folder (logo_wordmark.png, logo_plate.png) are copyright Cameron Brooks, all rights reserved.
+They are not covered by the GPL-3.0 licence of the code and may not be reused without permission.
